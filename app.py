@@ -31,16 +31,16 @@ if uploaded_file is not None:
         st.write("### 📄 Preview of Uploaded Data")
         st.write(df_sales.head())
         
-        # Display summary statistics
+        # Display summary statistics with rupee symbol
         st.write("### 📈 Summary Statistics")
         total_sales = df_sales['y'].sum()
         avg_sales = df_sales['y'].mean()
         min_sales = df_sales['y'].min()
         max_sales = df_sales['y'].max()
-        st.metric("Total Sales", f"${total_sales:,.2f}")
-        st.metric("Average Daily Sales", f"${avg_sales:,.2f}")
-        st.metric("Min Sales", f"${min_sales:,.2f}")
-        st.metric("Max Sales", f"${max_sales:,.2f}")
+        st.metric("Total Sales", f"₹{total_sales:,.2f}")
+        st.metric("Average Daily Sales", f"₹{avg_sales:,.2f}")
+        st.metric("Min Sales", f"₹{min_sales:,.2f}")
+        st.metric("Max Sales", f"₹{max_sales:,.2f}")
         
         # Train the Prophet model
         with st.spinner("Training the model..."):
@@ -51,11 +51,12 @@ if uploaded_file is not None:
         future = model.make_future_dataframe(periods=forecast_period)
         forecast = model.predict(future)
         
-        # Display forecast table
+        # Display forecast table with rupee symbol
         st.write(f"### 🔮 Sales Forecast for the Next {forecast_period} Days")
         forecast_table = forecast[['ds', 'yhat']].tail(forecast_period).rename(columns={'ds': 'Date', 'yhat': 'Predicted Sales'})
+        forecast_table['Predicted Sales'] = forecast_table['Predicted Sales'].apply(lambda x: f"₹{x:,.2f}")
         st.write(forecast_table)
-        
+
         # Allow users to download forecasted data as CSV
         csv = forecast_table.to_csv(index=False).encode()
         b64 = base64.b64encode(csv).decode()
@@ -65,13 +66,13 @@ if uploaded_file is not None:
         # Set the selected plot theme
         plt.style.use(plot_theme)
         
-        # Plot forecast
+        # Plot forecast with rupee symbol in the title
         st.write("### 📊 Forecast Plot")
         fig, ax = plt.subplots()
         model.plot(forecast, ax=ax)
-        plt.title("Predicted Sales Forecast")
+        plt.title("Predicted Sales Forecast (in ₹)")
         plt.xlabel("Date")
-        plt.ylabel("Sales")
+        plt.ylabel("Sales (₹)")
         st.pyplot(fig)
     
     except Exception as e:
@@ -88,5 +89,6 @@ st.write("""
 3. Use the sidebar to adjust the forecast period and plot theme. 
 4. Once uploaded, the app will display a preview of the data and automatically forecast the selected period of sales.
 """)
+
 
 
