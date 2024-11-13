@@ -48,41 +48,8 @@ if uploaded_file is not None:
             model.fit(df_sales)
         
         # Make future predictions based on the forecast period selected by the user
-        future = model.make_future_dataframe(periods=forecast_period)
-        forecast = model.predict(future)
-        
-        # Display forecast table with rupee symbol
-        st.write(f"### 🔮 Sales Forecast for the Next {forecast_period} Days")
-        forecast_table = forecast[['ds', 'yhat']].tail(forecast_period).rename(columns={'ds': 'Date', 'yhat': 'Predicted Sales'})
-        forecast_table['Predicted Sales'] = forecast_table['Predicted Sales'].apply(lambda x: f"₹{x:,.2f}")
-        st.write(forecast_table)
+        future = model.make_future_dataframe(periods=forecast_p
 
-        # Allow users to download forecasted data as CSV
-        csv = forecast_table.to_csv(index=False).encode()
-        b64 = base64.b64encode(csv).decode()
-        href = f'<a href="data:file/csv;base64,{b64}" download="forecasted_sales.csv">📥 Download Forecasted Data as CSV</a>'
-        st.markdown(href, unsafe_allow_html=True)
-        
-        # Set the selected plot theme
-        plt.style.use(plot_theme)
-        
-        # Plot forecast with rupee symbol in the title
-        st.write("### 📊 Forecast Plot")
-        fig, ax = plt.subplots()
-        model.plot(forecast, ax=ax)
-        plt.title("Predicted Sales Forecast (in ₹)")
-        plt.xlabel("Date")
-        plt.ylabel("Sales (₹)")
-        st.pyplot(fig)
-    
-    except Exception as e:
-        st.error(f"Error processing file: {e}")
-        st.stop()
-else:
-    st.info("Please upload a CSV file to proceed.")
-
-# App instructions
-st.write("#### ℹ️ Instruction
 
 
 
