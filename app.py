@@ -42,12 +42,12 @@ if uploaded_file is not None:
         st.metric("Min Sales", f"₹{min_sales:,.2f}")
         st.metric("Max Sales", f"₹{max_sales:,.2f}")
         
-        # Train the Prophet model
+        # Train the Prophet model and make predictions
         with st.spinner("Training the model..."):
             model = Prophet()
             model.fit(df_sales)
         
-        # Make future predictions based on the forecast period selected by the user
+        # Generate future predictions based on forecast period
         future = model.make_future_dataframe(periods=forecast_period)
         forecast = model.predict(future)
         
@@ -89,6 +89,7 @@ st.write("""
 3. Use the sidebar to adjust the forecast period and plot theme. 
 4. Once uploaded, the app will display a preview of the data and automatically forecast the selected period of sales.
 """)
+
 
 
 
