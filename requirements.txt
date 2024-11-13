@@ -2,3 +2,4 @@ streamlit
 prophet
 matplotlib
 pandas
+seaborn
