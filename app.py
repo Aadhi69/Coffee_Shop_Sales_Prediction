@@ -6,11 +6,11 @@ import seaborn as sns
 import base64
 
 # Set page configuration for centered layout and title
-st.set_page_config(page_title="Comprehensive Sales Prediction Dashboard", layout="centered")
+st.set_page_config(page_title="Enhanced Sales Prediction Dashboard", layout="centered")
 
 # App title and description
-st.title("☕ Comprehensive Coffee Shop Sales Prediction Dashboard")
-st.write("Upload your CSV file with sales data, and forecast future sales with a variety of visualizations and options.")
+st.title("☕ Coffee Shop Sales Prediction Dashboard")
+st.write("Upload your CSV file with sales data, and forecast future sales with a variety of visualizations and insights.")
 
 # Sidebar for forecast options and additional settings
 st.sidebar.header("🔧 Customization Settings")
@@ -105,31 +105,29 @@ if uploaded_file is not None:
         ax.set_ylabel("Frequency")
         st.pyplot(fig)
         
-        # Visualization 3: Pie Chart of Sales Categories (High, Medium, Low)
-        st.write("### 📊 Proportion of High, Medium, and Low Sales Days")
-        high_sales = (df_sales['y'] > df_sales['y'].quantile(0.75)).sum()
-        medium_sales = ((df_sales['y'] <= df_sales['y'].quantile(0.75)) & (df_sales['y'] > df_sales['y'].quantile(0.25))).sum()
-        low_sales = (df_sales['y'] <= df_sales['y'].quantile(0.25)).sum()
+        # Actionable Insights Section
+        st.write("### 📈 Sales Improvement Insights")
         
-        sales_categories = pd.Series([high_sales, medium_sales, low_sales], index=["High Sales Days", "Medium Sales Days", "Low Sales Days"])
-        
-        fig, ax = plt.subplots()
-        sales_categories.plot.pie(autopct='%1.1f%%', colors=[plot_color, "#FF9999", "#66B2FF"], ax=ax)
-        ax.set_ylabel("")
-        st.pyplot(fig)
-        
-        # Visualization 4: Bar Chart of Average Weekly Sales
-        st.write("### 📅 Average Weekly Sales Over Time")
-        df_sales['Week'] = df_sales['ds'].dt.isocalendar().week
-        weekly_sales = df_sales.groupby('Week')['y'].mean()
-        
-        fig, ax = plt.subplots(figsize=(10, 5))
-        weekly_sales.plot(kind='bar', color=plot_color, ax=ax)
-        ax.set_title("Average Weekly Sales")
-        ax.set_xlabel("Week Number")
-        ax.set_ylabel("Average Sales (₹)")
-        st.pyplot(fig)
+        with st.expander("**1. Sales Trend Analysis by Day of the Week**"):
+            df_sales['Day of Week'] = df_sales['ds'].dt.day_name()
+            average_sales_by_day = df_sales.groupby('Day of Week')['y'].mean().reindex(
+                ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+            )
+            st.bar_chart(average_sales_by_day)
+            high_sales_day = average_sales_by_day.idxmax()
+            low_sales_day = average_sales_by_day.idxmin()
+            st.write(f"🔹 **Peak Sales Day**: {high_sales_day} - Plan promotions on this day.")
+            st.write(f"🔹 **Slow Sales Day**: {low_sales_day} - Consider discounts or special offers.")
 
+        with st.expander("**2. Top Products Recommendation**"):
+            if 'Product' in df_sales.columns:
+                product_sales = df_sales.groupby('Product')['y'].sum().sort_values(ascending=False).head(5)
+                st.write("**Top 5 Best-Selling Products**")
+                st.bar_chart(product_sales)
+                st.write("Prioritize stocking these items to meet demand and prevent stockouts.")
+            else:
+                st.write("Upload data with a 'Product' column to see recommendations.")
+        
     except Exception as e:
         st.error(f"Error processing file: {e}")
 else:
@@ -142,3 +140,4 @@ st.write("""
 2. Adjust the forecast period, color preferences, and display options from the sidebar.
 3. The dashboard includes multiple visualizations to help you understand the sales forecast and historical trends.
 """)
+
