@@ -19,6 +19,13 @@ plot_theme = st.sidebar.selectbox("Select Plot Theme", options=["default", "seab
 # File uploader
 uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
+@st.cache(allow_output_mutation=True)
+def train_model(data):
+    # Initialize and fit the Prophet model
+    model = Prophet()
+    model.fit(data)
+    return model
+
 # Check if a file has been uploaded
 if uploaded_file is not None:
     try:
@@ -42,15 +49,13 @@ if uploaded_file is not None:
         st.metric("Min Sales", f"₹{min_sales:,.2f}")
         st.metric("Max Sales", f"₹{max_sales:,.2f}")
 
-        # Train the model and make predictions
-        with st.spinner("Training the model and generating the forecast..."):
-            # Initialize and fit the Prophet model
-            model = Prophet()
-            model.fit(df_sales)
-
-            # Create a future dataframe based on the selected forecast period
-            future = model.make_future_dataframe(periods=forecast_period)
-            forecast = model.predict(future)
+        # Train and cache the model
+        with st.spinner("Training the model..."):
+            model = train_model(df_sales)
+        
+        # Generate future predictions based on forecast period
+        future = model.make_future_dataframe(periods=forecast_period)
+        forecast = model.predict(future)
         
         # Display forecast table with rupee symbol
         st.write(f"### 🔮 Sales Forecast for the Next {forecast_period} Days")
@@ -90,6 +95,7 @@ st.write("""
 3. Use the sidebar to adjust the forecast period and plot theme. 
 4. Once uploaded, the app will display a preview of the data and automatically forecast the selected period of sales.
 """)
+
 
 
 
