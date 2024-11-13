@@ -82,13 +82,8 @@ else:
     st.info("Please upload a CSV file to proceed.")
 
 # App instructions
-st.write("#### ℹ️ Instructions")
-st.write("""
-1. Upload a CSV file with at least two columns: **Date** (for dates) and **Total_Sales** (for sales data).
-2. The Date column should contain date values, and Total_Sales should contain numerical sales values.
-3. Use the sidebar to adjust the forecast period and plot theme. 
-4. Once uploaded, the app will display a preview of the data and automatically forecast the selected period of sales.
-""")
+st.write("#### ℹ️ Instruction
+
 
 
 
