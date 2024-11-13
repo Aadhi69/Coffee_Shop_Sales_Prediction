@@ -9,22 +9,28 @@ st.set_page_config(page_title="Coffee Shop Sales Prediction", layout="centered")
 
 # Title and description
 st.title("📊 Coffee Shop Sales Prediction App")
-st.write("Upload your CSV file with sales data, and the app will forecast sales using the Prophet model.")
+st.write("Upload your CSV file with sales data, and the app will forecast sales for up to 90 days using the Prophet model.")
 
 # Sidebar for user input options
 st.sidebar.header("⚙️ Settings")
-forecast_period = st.sidebar.slider("Forecast Period (days)", min_value=7, max_value=90, value=30, step=1)
+forecast_period = st.sidebar.slider("Select Forecast Period (days)", min_value=7, max_value=90, value=30, step=1)
 plot_theme = st.sidebar.selectbox("Select Plot Theme", options=["default", "seaborn", "ggplot", "bmh"])
 
 # File uploader
 uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
 
+# Define a function to train the model and generate predictions for 90 days
 @st.cache(allow_output_mutation=True)
-def train_model(data):
+def train_and_forecast(data, days=90):
     # Initialize and fit the Prophet model
     model = Prophet()
     model.fit(data)
-    return model
+    
+    # Create a future dataframe for 90 days
+    future = model.make_future_dataframe(periods=days)
+    forecast = model.predict(future)
+    
+    return forecast, model
 
 # Check if a file has been uploaded
 if uploaded_file is not None:
@@ -49,19 +55,17 @@ if uploaded_file is not None:
         st.metric("Min Sales", f"₹{min_sales:,.2f}")
         st.metric("Max Sales", f"₹{max_sales:,.2f}")
 
-        # Train and cache the model
-        with st.spinner("Training the model..."):
-            model = train_model(df_sales)
+        # Train the model and forecast for 90 days
+        with st.spinner("Training the model and generating a 90-day forecast..."):
+            forecast, model = train_and_forecast(df_sales, days=90)
         
-        # Generate future predictions based on forecast period
-        future = model.make_future_dataframe(periods=forecast_period)
-        forecast = model.predict(future)
-        
-        # Display forecast table with rupee symbol
-        st.write(f"### 🔮 Sales Forecast for the Next {forecast_period} Days")
+        # Slice the forecast based on the selected forecast period
         forecast_table = forecast[['ds', 'yhat']].tail(forecast_period)
         forecast_table = forecast_table.rename(columns={'ds': 'Date', 'yhat': 'Predicted Sales'})
         forecast_table['Predicted Sales'] = forecast_table['Predicted Sales'].apply(lambda x: f"₹{x:,.2f}")
+
+        # Display the forecast table
+        st.write(f"### 🔮 Sales Forecast for the Next {forecast_period} Days")
         st.write(forecast_table)
 
         # Allow users to download forecasted data as CSV
@@ -73,10 +77,11 @@ if uploaded_file is not None:
         # Set the selected plot theme
         plt.style.use(plot_theme)
 
-        # Plot forecast
+        # Plot forecast for selected forecast period
         st.write("### 📊 Forecast Plot")
         fig, ax = plt.subplots(figsize=(10, 6))
         model.plot(forecast, ax=ax)
+        ax.set_xlim([forecast['ds'].iloc[-forecast_period], forecast['ds'].iloc[-1]])  # Limit x-axis to forecast period
         ax.set_title(f"Predicted Sales Forecast (Next {forecast_period} Days)", fontsize=16)
         ax.set_xlabel("Date")
         ax.set_ylabel("Sales (₹)")
@@ -95,12 +100,3 @@ st.write("""
 3. Use the sidebar to adjust the forecast period and plot theme. 
 4. Once uploaded, the app will display a preview of the data and automatically forecast the selected period of sales.
 """)
-
-
-
-
-
-
-
-
-
